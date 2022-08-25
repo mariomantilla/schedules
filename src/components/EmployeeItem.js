@@ -1,8 +1,9 @@
-const EmployeeItem = ({ employee, onDelete }) => {
+const EmployeeItem = ({ employee, onDelete, onClick }) => {
     
     return (
         <div
             className={"p-3 max-h-14 flex align-center justify-between border"}
+            onClick={onClick}
         >
             <span className={"truncate flex-grow"}>
                 <span

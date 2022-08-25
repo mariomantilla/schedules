@@ -1,6 +1,7 @@
 import { createRef, Component } from "react"
 import RecoverPassword from "./RecoverPassword"
 import EmployeeItem from "./EmployeeItem"
+import EmployeeSchedule from "./EmployeeSchedule"
 import { supabase } from "../api";
 
 
@@ -11,18 +12,28 @@ class Home extends Component {
         this.state = {
             recoveryToken: props.recoveryToken,
             employees: [],
-            errorText: ""
+            clients: [],
+            showClients: false,
+            errorText: "",
+            selectedEmployee: null
         }
         this.newEmployeeNameRef = createRef();
+
         this.addEmployee = this.addEmployee.bind(this);
         this.deleteEmployee = this.deleteEmployee.bind(this);
         this.fetchEmployees = this.fetchEmployees.bind(this);
+
+        this.selectEmployee = this.selectEmployee.bind(this);
+
+        this.fetchClients = this.fetchClients.bind(this);
+
         this.clearRecoveryToken = this.clearRecoveryToken.bind(this);
         this.showError = this.showError.bind(this);
     }
 
     componentDidMount() {
         this.fetchEmployees();
+        this.fetchClients();
     }
 
     clearRecoveryToken() {
@@ -33,6 +44,10 @@ class Home extends Component {
         this.setState({errorText: msg});
     }
 
+    async selectEmployee(employee) {
+        this.setState({selectedEmployee: employee});
+    }
+
     async fetchEmployees() {
         let { data: employees, error } = await supabase
             .from("employees")
@@ -40,6 +55,15 @@ class Home extends Component {
             .order("id", { ascending: false });
         if (error) this.showError(error.message);
         else this.setState({employees: employees});
+    }
+
+    async fetchClients() {
+        let { data: clients, error } = await supabase
+            .from("clients")
+            .select("*")
+            .order("id", { ascending: false });
+        if (error) this.showError(error.message);
+        else this.setState({clients: clients});
     }
 
     async deleteEmployee(id) {
@@ -74,6 +98,10 @@ class Home extends Component {
         if (this.state.recoveryToken) {
             return (<RecoverPassword token={this.state.recoveryToken} setRecoveryToken={this.clearRecoveryToken} />); // 
         }
+
+        let itemsToShow = this.state.showClients ? this.state.clients : this.state.employees ;
+        let noItemsMsg = this.state.showClients ? "Aun no hay clientes!" : "Aun no hay empleados!" ;
+
         return (
             <div className={"w-screen fixed flex flex-col min-h-screen bg-gray-50"}>
             <header
@@ -99,19 +127,43 @@ class Home extends Component {
             </header>
             <div className="flex-1 flex flex-row">
                 <div
-                className={"flex flex-col flex-grow p-4 w-1/4"}
+                className={"flex flex-col flex-grow p-4 w-1/4 min-w-max"}
                 style={{ height: "calc(100vh - 4rem)" }}
             >
+            <div className="p-2 flex">
+            <span className="block w-full mx-1.5 rounded-md shadow-sm">
+            
+            <button
+                        onClick={() => {this.setState({showClients: false})}}
+                        type="button"
+                        disabled={!this.state.showClients}
+                        className="flex w-full justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:enabled:bg-blue-500 focus:outline-none focus:border-blue-700 focus:shadow-outline-blue active:enabled:bg-blue-700 transition duration-150 ease-in-out"
+                    >
+                        Empleados
+                    </button></span>
+                    <span className="block w-full mx-1.5 rounded-md shadow-sm">
+                    <button
+                        onClick={() => {this.setState({showClients: true})}}
+                        type="button"
+                        disabled={this.state.showClients}
+                        className="flex w-full justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:enabled:bg-blue-500 focus:outline-none focus:border-blue-700 focus:shadow-outline-blue active:enabled:bg-blue-700 transition duration-150 ease-in-out"
+                    >
+                        Clientes
+                    </button>
+                    </span>
+
+            </div>
                 <div
                     className={`p-2 border flex-grow grid gap-2 ${
                         this.state.employees.length ? "auto-rows-min" : ""
-                    } grid-cols-1 h-2/3 overflow-y-scroll first:mt-8`}
+                    } grid-cols-1 h-2/3 overflow-y-scroll`}
                 >
-                    {this.state.employees.length ? (
-                        this.state.employees.map((employee) => (
+                    {itemsToShow.length ? (
+                        itemsToShow.map((employee) => (
                             <EmployeeItem
                                 key={employee.id}
                                 employee={employee}
+                                onClick={() => this.selectEmployee(employee)}
                                 onDelete={() => this.deleteEmployee(employee.id)}
                             />
                         ))
@@ -121,7 +173,7 @@ class Home extends Component {
                                 "h-full flex justify-center items-center"
                             }
                         >
-                            Aun no hay empleados!
+                            {noItemsMsg}
                         </span>
                     )}
                 </div>
@@ -155,16 +207,19 @@ class Home extends Component {
                 </div>
             </div>
             <div
-                className={"flex flex-col p-4 w-3/4"}
+                className={"flex flex-col p-4 w-3/4 min-w-max"}
                 style={{ height: "calc(100vh - 4rem)" }}
             >
-            <span
+            {this.state.selectedEmployee ? (<EmployeeSchedule employee={this.state.selectedEmployee} />) : (
+                <span
                             className={
                                 "h-full flex justify-center items-center"
                             }
                         >
-                            Selecciona un empleado para ver sus cuadrantes
-                        </span></div>
+                            Selecciona un empleado o cliente para ver sus cuadrantes
+                        </span>
+                    )}
+            </div>
                 </div>
                 
                 </div>
