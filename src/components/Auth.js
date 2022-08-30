@@ -146,7 +146,7 @@ const Auth = () => {
                     </div>
                     <div className="relative flex justify-center text-sm leading-5">
                         <span className="px-2 bg-white text-gray-500">
-                            Or continue with
+                            O inicia sessión con
                         </span>
                     </div>
                 </div>
