@@ -1,4 +1,7 @@
-const EmployeeItem = ({ employee, onDelete, onClick }) => {
+import { MdDelete } from "react-icons/md";
+
+
+const LateralBarItem = ({ item, onDelete, onClick }) => {
     
     return (
         <div
@@ -9,21 +12,21 @@ const EmployeeItem = ({ employee, onDelete, onClick }) => {
                 <span
                     className={`w-full flex-grow`}
                 >
-                    {employee.name}
+                    {item.name}
                 </span>
             </span>
             <button
-                className={"font-mono text-red-500 text-xl border px-2"}
+                className={"font-mono text-red-500 text-xl"}
                 onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     onDelete();
                 }}
             >
-                X
+                <MdDelete />
             </button>
         </div>
     );
 };
 
-export default EmployeeItem;
+export default LateralBarItem;

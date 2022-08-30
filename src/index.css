@@ -19,3 +19,11 @@ h1 {
     font-size: 2.5rem;
     font-weight: 700;
 }
+
+.hideParent .hideButton{
+    visibility: hidden;
+}
+
+.hideParent:hover .hideButton{
+    visibility: visible;
+}

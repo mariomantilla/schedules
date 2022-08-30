@@ -26,12 +26,12 @@ const Auth = () => {
         }
     };
 
-    /*const handleOAuthLogin = async (provider) => {
+    const handleOAuthLogin = async (provider) => {
         // You need to enable the third party auth you want in Authentication > Settings
         // Read more on: https://supabase.com/docs/guides/auth#third-party-logins
         let { error } = await supabase.auth.signIn({ provider });
         if (error) console.log("Error: ", error.message);
-    };*/
+    };
 
     const forgotPassword = async (e) => {
         // Read more on https://supabase.com/docs/reference/javascript/reset-password-email#notes
@@ -139,7 +139,7 @@ const Auth = () => {
                     </button>
                 </span>
             </div>
-            {/* <div className="mt-3">
+            <div className="mt-3">
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full mx-1.5 border-t border-gray-300" />
@@ -152,7 +152,7 @@ const Auth = () => {
                 </div>
 
                 <div>
-                    <div className="mt-3">
+                    {/* <div className="mt-3">
                         <span className="block rounded-md shadow-sm">
                             <button
                                 onClick={() => handleOAuthLogin("github")}
@@ -162,7 +162,7 @@ const Auth = () => {
                                 GitHub
                             </button>
                         </span>
-                    </div>
+                    </div> */}
                     <div className="mt-3">
                         <span className="block rounded-md shadow-sm">
                             <button
@@ -175,7 +175,7 @@ const Auth = () => {
                         </span>
                     </div>
                 </div>
-            </div> */}
+            </div>
         </div>
     );
 };
