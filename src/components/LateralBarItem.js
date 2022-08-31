@@ -5,7 +5,7 @@ const LateralBarItem = ({ item, onDelete, onClick }) => {
     
     return (
         <div
-            className={"p-3 max-h-14 flex align-center justify-between border"}
+            className={"p-3 max-h-14 flex align-center justify-between border cursor-pointer"}
             onClick={onClick}
         >
             <span className={"truncate flex-grow"}>

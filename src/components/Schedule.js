@@ -25,7 +25,7 @@ function Day(props) {
         let name = props.isClient ? shift.employee_id.name : shift.client_id.name;
         rows.push(
         <div key={i} className="border-2 rounded relative hideParent bg-slate-900 text-white" style={{height: duration(shift)/60, marginTop: mT/60}}>
-            <div className="absolute top-1 text-xl right-1 text-red-500 hideButton"><button><MdDelete /></button></div>
+            <div className="absolute top-1 text-xl right-1 text-red-500 hideButton z-10"><button onClick={() => props.deleteShift(shift.id)}><MdDelete /></button></div>
             <div className="w-full text-center absolute top-0 text-sm">{rms(shift.starts_at)}</div>
             <div className="w-full text-center absolute top-1/2" style={{transform: "translateY(-50%)"}}>{name}</div>
             <div className="w-full text-center absolute bottom-0 text-sm">{rms(shift.ends_at)}</div>
@@ -58,6 +58,7 @@ class Schedule extends Component {
 
         this.fetchShifts = this.fetchShifts.bind(this);
         this.addShift = this.addShift.bind(this);
+        this.deleteShift = this.deleteShift.bind(this);
         this.getShiftsFromDay = this.getShiftsFromDay.bind(this);
     }
 
@@ -93,6 +94,13 @@ class Schedule extends Component {
             let minHour = shifts.reduce((prev, curr) => prev.Cost < curr.Cost ? prev : curr, 0);
             this.setState({shifts: shifts, minHour: minHour});
         }
+    }
+
+    async deleteShift(id) {
+        let { data, error } = await supabase.from("shifts").delete().eq("id", id);
+        if (error) console.log(error.message);
+        else if (data.length === 0) console.log("Error al eliminar");
+        else this.fetchShifts();
     }
 
     getShiftsFromDay(day) {
@@ -188,13 +196,13 @@ class Schedule extends Component {
                     </div>
                 </div>
                 <div className={"p-4 grid grid-cols-7 grid-flow-row gap-4 min-w-full"}>
-                    <Day name={"Lunes"} shifts={this.getShiftsFromDay("monday")} isClient={this.props.isClient}></Day>
-                    <Day name={"Martes"} shifts={this.getShiftsFromDay("tuesday")} isClient={this.props.isClient}></Day>
-                    <Day name={"Miercoles"} shifts={this.getShiftsFromDay("wednesday")} isClient={this.props.isClient}></Day>
-                    <Day name={"Jueves"} shifts={this.getShiftsFromDay("thursday")} isClient={this.props.isClient}></Day>
-                    <Day name={"Viernes"} shifts={this.getShiftsFromDay("friday")} isClient={this.props.isClient}></Day>
-                    <Day name={"Sábado"} shifts={this.getShiftsFromDay("saturday")} isClient={this.props.isClient}></Day>
-                    <Day name={"Domingo"} shifts={this.getShiftsFromDay("sunday")} isClient={this.props.isClient}></Day>
+                    <Day name={"Lunes"} shifts={this.getShiftsFromDay("monday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
+                    <Day name={"Martes"} shifts={this.getShiftsFromDay("tuesday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
+                    <Day name={"Miercoles"} shifts={this.getShiftsFromDay("wednesday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
+                    <Day name={"Jueves"} shifts={this.getShiftsFromDay("thursday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
+                    <Day name={"Viernes"} shifts={this.getShiftsFromDay("friday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
+                    <Day name={"Sábado"} shifts={this.getShiftsFromDay("saturday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
+                    <Day name={"Domingo"} shifts={this.getShiftsFromDay("sunday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
                 </div>
                 
             </div>
