@@ -18,13 +18,13 @@ function rms(time) {
 
 function Day(props) {
     const rows = [];
-    let lastEnds = 10*3600;
+    let lastEnds = props.minHour;
     for (let i = 0; i < props.shifts.length; i++) {
         let shift = props.shifts[i];
         let mT = s(shift.starts_at)-lastEnds;
         let name = props.isClient ? shift.employee_id.name : shift.client_id.name;
         rows.push(
-        <div key={i} className="border-2 rounded relative hideParent bg-slate-900 text-white" style={{height: duration(shift)/60, marginTop: mT/60}}>
+        <div key={i} className="border-2 rounded-md relative hideParent bg-slate-900 text-white" style={{height: duration(shift)/60, marginTop: mT/60}}>
             <div className="absolute top-1 text-xl right-1 text-red-500 hideButton z-10"><button onClick={() => props.deleteShift(shift.id)}><MdDelete /></button></div>
             <div className="w-full text-center absolute top-0 text-sm">{rms(shift.starts_at)}</div>
             <div className="w-full text-center absolute top-1/2" style={{transform: "translateY(-50%)"}}>{name}</div>
@@ -91,7 +91,7 @@ class Schedule extends Component {
         .order("starts_at", { ascending: true });
         if (error) console.log(error.message);
         else {
-            let minHour = shifts.reduce((prev, curr) => prev.Cost < curr.Cost ? prev : curr, 0);
+            let minHour = shifts.map((shift) => s(shift.starts_at)).reduce((p, c) => p < c ? p : c, 10000000);
             this.setState({shifts: shifts, minHour: minHour});
         }
     }
@@ -196,13 +196,13 @@ class Schedule extends Component {
                     </div>
                 </div>
                 <div className={"p-4 grid grid-cols-7 grid-flow-row gap-4 min-w-full"}>
-                    <Day name={"Lunes"} shifts={this.getShiftsFromDay("monday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
-                    <Day name={"Martes"} shifts={this.getShiftsFromDay("tuesday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
-                    <Day name={"Miercoles"} shifts={this.getShiftsFromDay("wednesday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
-                    <Day name={"Jueves"} shifts={this.getShiftsFromDay("thursday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
-                    <Day name={"Viernes"} shifts={this.getShiftsFromDay("friday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
-                    <Day name={"Sábado"} shifts={this.getShiftsFromDay("saturday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
-                    <Day name={"Domingo"} shifts={this.getShiftsFromDay("sunday")} isClient={this.props.isClient} deleteShift={this.deleteShift}></Day>
+                    <Day name={"Lunes"} shifts={this.getShiftsFromDay("monday")} isClient={this.props.isClient} deleteShift={this.deleteShift} minHour={this.state.minHour}></Day>
+                    <Day name={"Martes"} shifts={this.getShiftsFromDay("tuesday")} isClient={this.props.isClient} deleteShift={this.deleteShift} minHour={this.state.minHour}></Day>
+                    <Day name={"Miercoles"} shifts={this.getShiftsFromDay("wednesday")} isClient={this.props.isClient} deleteShift={this.deleteShift} minHour={this.state.minHour}></Day>
+                    <Day name={"Jueves"} shifts={this.getShiftsFromDay("thursday")} isClient={this.props.isClient} deleteShift={this.deleteShift} minHour={this.state.minHour}></Day>
+                    <Day name={"Viernes"} shifts={this.getShiftsFromDay("friday")} isClient={this.props.isClient} deleteShift={this.deleteShift} minHour={this.state.minHour}></Day>
+                    <Day name={"Sábado"} shifts={this.getShiftsFromDay("saturday")} isClient={this.props.isClient} deleteShift={this.deleteShift} minHour={this.state.minHour}></Day>
+                    <Day name={"Domingo"} shifts={this.getShiftsFromDay("sunday")} isClient={this.props.isClient} deleteShift={this.deleteShift} minHour={this.state.minHour}></Day>
                 </div>
                 
             </div>
