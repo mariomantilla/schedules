@@ -13,18 +13,24 @@ class Home extends Component {
             recoveryToken: props.recoveryToken,
             employees: [],
             clients: [],
+            results: [],
             clientMode: false,
             errorText: "",
             selectedItem: null,
             selectedItemIsClient: null
         }
         this.newNameRef = createRef();
+        this.searchRef = createRef();
 
         this.addClientOrEmployee = this.addClientOrEmployee.bind(this);
         this.deleteItem = this.deleteItem.bind(this);
 
         this.fetchEmployees = this.fetchEmployees.bind(this);
         this.fetchClients = this.fetchClients.bind(this);
+
+        this.getSearchedResults = this.getSearchedResults.bind(this);
+        this.applySearch = this.applySearch.bind(this);
+        this.toogleView = this.toogleView.bind(this);
 
         this.selectItem = this.selectItem.bind(this);
 
@@ -33,8 +39,17 @@ class Home extends Component {
     }
 
     componentDidMount() {
-        this.fetchEmployees();
+        this.fetchEmployees(true);
         this.fetchClients();
+    }
+
+    toogleView() {
+        this.setState({
+            clientMode: !this.state.clientMode,
+            results: this.state.clientMode ? this.state.employees : this.state.clients
+        });
+        this.searchRef.current.value = ""
+        this.newNameRef.current.value = "";
     }
 
     clearRecoveryToken() {
@@ -45,17 +60,29 @@ class Home extends Component {
         this.setState({errorText: msg});
     }
 
+    getSearchedResults() {
+        let fullList = this.state.clientMode ? this.state.clients : this.state.employees;
+        return fullList.filter((x) => x.name.includes(this.searchRef.current.value));
+    }
+
+    applySearch() {
+        this.setState({results: this.getSearchedResults()});
+    }
+
     async selectItem(item) {
         this.setState({selectedItem: item, selectedItemIsClient: this.state.clientMode});
     }
 
-    async fetchEmployees() {
+    async fetchEmployees(setResults = false) {
         let { data: employees, error } = await supabase
             .from("employees")
             .select("id,name,shifts(id)")
             .order("name", { ascending: true });
         if (error) this.showError(error.message);
-        else this.setState({employees: employees});
+        else this.setState({employees: employees, results: setResults ? employees : this.state.results});
+        if (setResults) {
+            this.searchRef.current.value = '';
+        }
     }
 
     async fetchClients() {
@@ -78,8 +105,14 @@ class Home extends Component {
         let { data, error } = await supabase.from(this.state.clientMode ? "clients" : "employees").delete().eq("id", item.id);
         if (error) this.showError(error.message);
         else if (data.length === 0) this.showError("Error al eliminar");
-        else if (this.state.clientMode) this.setState({clients: this.state.clients.filter((x) => x.id !== item.id)});
-        else this.setState({employees: this.state.employees.filter((x) => x.id !== item.id)});
+        else if (this.state.clientMode) this.setState({
+            clients: this.state.clients.filter((x) => x.id !== item.id),
+            results: this.state.results.filter((x) => x.id !== item.id)
+        });
+        else this.setState({
+            employees: this.state.employees.filter((x) => x.id !== item.id),
+            results: this.state.results.filter((x) => x.id !== item.id)
+        });
     }
 
     async addClientOrEmployee() {
@@ -94,8 +127,23 @@ class Home extends Component {
             if (error) this.showError(error.message);
             else {
                 item.shifts = []
-                if (this.state.clientMode) this.setState({clients: [item, ...this.state.clients].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)), errorText: ""});
-                else this.setState({employees: [item, ...this.state.employees].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)), errorText: ""});
+                let sortFunc = (a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);
+                let employees, clients, results;
+                if (this.state.clientMode) {
+                    clients = [item, ...this.state.clients].sort(sortFunc);
+                    results = clients.filter((x) => x.name.includes(this.searchRef.current.value));
+                    employees = this.state.employees;
+                } else {
+                    employees = [item, ...this.state.employees].sort(sortFunc);
+                    results = employees.filter((x) => x.name.includes(this.searchRef.current.value));
+                    clients = this.state.clients;
+                }
+                this.setState({
+                    clients: clients,
+                    employees: employees,
+                    results: results,
+                    errorText: ""
+                });
                 this.newNameRef.current.value = "";
             }
         }
@@ -110,7 +158,6 @@ class Home extends Component {
             return (<RecoverPassword token={this.state.recoveryToken} setRecoveryToken={this.clearRecoveryToken} />); // 
         }
 
-        let itemsToShow = this.state.clientMode ? this.state.clients : this.state.employees ;
         let noItemsMsg = this.state.clientMode ? "Aun no hay clientes!" : "Aun no hay empleados!" ;
         let addItemMsg = this.state.clientMode ? "Cliente" : "Empleado" ;
 
@@ -146,33 +193,43 @@ class Home extends Component {
             <span className="block w-full mx-1.5 rounded-md shadow-sm">
             
             <button
-                        onClick={() => {this.setState({clientMode: false});this.newNameRef.current.value = "";}}
+                        onClick={this.toogleView}
                         type="button"
                         disabled={!this.state.clientMode}
                         className="flex w-full justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:enabled:bg-blue-500 focus:outline-none focus:border-blue-700 focus:shadow-outline-blue active:enabled:bg-blue-700 transition duration-150 ease-in-out"
                     >
-                        Empleados
+                        Ver Empleados
                     </button></span>
                     <span className="block w-full mx-1.5 rounded-md shadow-sm">
                     <button
-                        onClick={() => {this.setState({clientMode: true});this.newNameRef.current.value = "";}}
+                        onClick={this.toogleView}
                         type="button"
                         disabled={this.state.clientMode}
                         className="flex w-full justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:enabled:bg-blue-500 focus:outline-none focus:border-blue-700 focus:shadow-outline-blue active:enabled:bg-blue-700 transition duration-150 ease-in-out"
                     >
-                        Clientes
+                        Ver Clientes
                     </button>
                     </span>
 
             </div>
-            <div className="m-3 text-center text-lg font-bold">{addItemMsg}s</div>
+            <div className="m-3 text-center">
+            <input
+                ref={this.searchRef}
+                type="text"
+                placeholder={"Buscar "+addItemMsg}
+                onKeyUp={(e) => this.applySearch()}
+                className={
+                    "bg-gray-200 border px-2 border-gray-300 w-full mr-4 p-2 rounded-md"
+                }
+            />
+            </div>
                 <div
                     className={`p-2 border flex-grow grid gap-2 ${
                         this.state.employees.length ? "auto-rows-min" : ""
                     } grid-cols-1 h-2/3 overflow-y-scroll`}
                 >
-                    {itemsToShow.length ? (
-                        itemsToShow.map((item) => (
+                    {this.state.results.length ? (
+                        this.state.results.map((item) => (
                             <LateralBarItem
                                 key={item.id}
                                 item={item}
@@ -221,7 +278,7 @@ class Home extends Component {
                 </div>
             </div>
             <div
-                className={"flex flex-col p-4 w-3/4 min-w-max"}
+                className={"flex flex-col p-4 w-3/4 min-w-max overflow-auto"}
                 style={{ height: "calc(100vh - 4rem)" }}
             >
             {this.state.selectedItem ? (
@@ -239,8 +296,8 @@ class Home extends Component {
             )}
             </div>
                 </div>
-                
                 </div>
+                
         )
     }
 }

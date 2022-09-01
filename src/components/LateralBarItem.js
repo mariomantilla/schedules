@@ -1,9 +1,14 @@
 import { MdDelete } from "react-icons/md";
+import React, { useState } from 'react';
+import  ConfirmationModal from "./ConfirmationModal"
 
 
 const LateralBarItem = ({ item, onDelete, onClick }) => {
+
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     
     return (
+        <div>
         <div
             className={"p-3 max-h-14 flex align-center justify-between border cursor-pointer"}
             onClick={onClick}
@@ -20,11 +25,21 @@ const LateralBarItem = ({ item, onDelete, onClick }) => {
                 onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    onDelete();
+                    setShowDeleteConfirmation(true)
                 }}
             >
                 <MdDelete />
             </button>
+        </div>
+        <ConfirmationModal
+                show={showDeleteConfirmation}
+                handleClose={() => setShowDeleteConfirmation(false)}
+                handleConfirm={(e) => {
+                    onDelete();
+                    setShowDeleteConfirmation(false)
+                }}
+                desc={"Vas a eliminar \""+item.name+"\" por completo (y toda la información asociada). Esta acción no puede deshacerse."}
+        ></ConfirmationModal>
         </div>
     );
 };

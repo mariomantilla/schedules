@@ -1,6 +1,7 @@
 import React, { Component } from "react"
 import Auth from "./components/Auth";
 import Home from "./components/Home";
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { supabase } from "./api"
 
 

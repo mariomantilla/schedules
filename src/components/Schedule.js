@@ -24,11 +24,11 @@ function Day(props) {
         let mT = s(shift.starts_at)-lastEnds;
         let name = props.isClient ? shift.employee_id.name : shift.client_id.name;
         rows.push(
-        <div key={i} className="border-2 rounded-md relative hideParent bg-slate-900 text-white" style={{height: duration(shift)/60, marginTop: mT/60}}>
+        <div key={i} className="border-2 rounded-md relative hideParent bg-slate-900 text-white" style={{height: Math.max(duration(shift)/60, 50), marginTop: mT/60}}>
             <div className="absolute top-1 text-xl right-1 text-red-500 hideButton z-10"><button onClick={() => props.deleteShift(shift.id)}><MdDelete /></button></div>
-            <div className="w-full text-center absolute top-0 text-sm">{rms(shift.starts_at)}</div>
+            <div className="w-full text-center absolute top-0 text-xs">{rms(shift.starts_at)}</div>
             <div className="w-full text-center absolute top-1/2" style={{transform: "translateY(-50%)"}}>{name}</div>
-            <div className="w-full text-center absolute bottom-0 text-sm">{rms(shift.ends_at)}</div>
+            <div className="w-full text-center absolute bottom-0 text-xs">{rms(shift.ends_at)}</div>
         </div>
         );
         lastEnds = s(shift.ends_at)
