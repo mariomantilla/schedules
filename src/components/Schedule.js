@@ -1,10 +1,18 @@
 import { createRef, Component } from "react"
 import { supabase } from "../api";
+import Popover from 'react-bootstrap/Popover';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Button from 'react-bootstrap/Button';
 import { MdDelete } from "react-icons/md";
+import { BsClock } from "react-icons/bs";
 
 
 function s(time) {
     return time.split(":").reduce((x, y) => parseInt(x)*60 + parseInt(y));
+}
+
+function displayTime(seconds) {
+    return `${Math.round(seconds/3600)}h ${Math.round(seconds/60 % 60)}m`
 }
 
 function duration(shift) {
@@ -48,6 +56,8 @@ class Schedule extends Component {
         this.state = {
             shifts: [],
             minHour: 0,
+            timesCounts: {},
+            totalTime: 0
         }
 
         this.newStartsRef = createRef();
@@ -92,7 +102,21 @@ class Schedule extends Component {
         if (error) console.log(error.message);
         else {
             let minHour = shifts.map((shift) => s(shift.starts_at)).reduce((p, c) => p < c ? p : c, 10000000);
-            this.setState({shifts: shifts, minHour: minHour});
+            let timesCounts = {};
+            let totalTime = 0;
+            shifts.forEach((shift) => {
+                let name = shift[this.props.isClient? "employee_id" : "client_id" ].name
+                if (!(name in timesCounts)) timesCounts[name] = 0;
+                let time = duration(shift);
+                timesCounts[name] += time;
+                totalTime += time;
+            });
+            this.setState({
+                shifts: shifts,
+                minHour: minHour,
+                timesCounts: timesCounts,
+                totalTime: totalTime
+            });
         }
     }
 
@@ -143,10 +167,36 @@ class Schedule extends Component {
     render() {
         let crossItemsList = this.props.isClient ? this.props.employees : this.props.clients ;
         let noItemsMsg = this.props.isClient ? "Sin empleados" : "Sin clientes";
+        let counts = this.state.timesCounts;
+
+        const popover = (
+            <Popover id="hoursInfoPopover">
+              <Popover.Header as="h3">Desglose de horas</Popover.Header>
+              <Popover.Body>
+                {   
+                    Object.entries(counts).map(([name, value]) => (
+                        <div key={name}><b>{name}</b>: {displayTime(value)}</div>
+                    ))
+                }
+                <div className="divider" key="divider"></div>
+                <div key="total">
+                    <b>Total</b>: {displayTime(this.state.totalTime)}
+                </div>
+              </Popover.Body>
+            </Popover>
+        );
+
         return (
             <div>
                 <div className="border-b-4 border-black-500">
-                    <h1 className={"inline"}>{this.props.item.name}</h1>
+                    <h1 className={"inline"}>
+                        {this.props.item.name}
+                    </h1>
+                    <OverlayTrigger trigger="click" placement="bottom" overlay={popover}>
+                        <Button variant="primary" onClick={() => null} className={"mt-2 ml-4 align-top"}>
+                        <BsClock />
+                        </Button>
+                    </OverlayTrigger>
                     <div className="float-right">
                     <div className={"flex m-4 mt-1 h-10"}>
                     <span className="whitespace-nowrap mt-2">Añadir turno de</span>
